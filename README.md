@@ -22,3 +22,5 @@ Never publish placeholder numbers as live facts.
 
 ## Deployment
 Static site — Vercel redeploys automatically when files change on GitHub.
+
+<!-- Test change: verifying push from Claude Code (2026-09-30). -->
