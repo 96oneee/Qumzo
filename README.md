@@ -1,32 +1,24 @@
-# QUMZO — Reusable Solana Meme Project Website
+# QUMZO — Weird by design.
 
-## Important
-QUMZO is the first project identity in this template. The architecture is intentionally reusable.
-
-### To create the NEXT project
-1. Copy the whole folder.
-2. Open `editor.html`.
-3. Change the project name, mark, hero, story, links, roadmap and tokenomics.
-4. Click **Export config.js**.
-5. Replace the site's `config.js`.
-6. Replace `qumzo-mascot.png` with the next project's artwork.
-7. Deploy.
-
-You do NOT need to rewrite the HTML or CSS.
+Static website for the QUMZO Solana community meme project.
 
 ## Files
-- `index.html` — website
-- `style.css` — design
-- `config.js` — all editable project content
-- `editor.html` — simple visual editor that exports `config.js`
-- `script.js` — renders config into the site
-- `qumzo-mascot.png` — current artwork
+- `index.html` — the page layout
+- `style.css` — the design (dark cosmic theme)
+- `config.js` — **all text, links, roadmap, FAQ and tokenomics. Edit this to change the site.**
+- `script.js` — puts config.js into the page (no need to edit)
+- `editor.html` — visual editor for the main fields → exports a new config.js
+- `assets/` — QUMZO character (8 moods, SVG), wordmark logo, favicon
+- `brand/` — X profile picture, X banners, transparent sticker PNGs
 
-## Live launch fields
-Do not replace TBA values with invented data. Add the actual contract, supply, fee configuration and social URLs only after they exist.
+## Launch day checklist
+1. In `config.js`, paste the real contract address into `contract`.
+2. Replace `buy` with the exact pump.fun page of the coin.
+3. Update `Total supply` / `Creator fee` in `tokenomics` with the real values.
+4. In `roadmap`, flip `["Fair launch on pump.fun", false]` to `true`.
+5. When a DexScreener page exists, paste it in `links.chart` (the CHART button appears automatically).
+
+Never publish placeholder numbers as live facts.
 
 ## Deployment
-This is a static site. It can be deployed to Vercel, Netlify, GitHub Pages, or another static host.
-
-## Current research note
-QUMZO exact searches produced no current crypto/Pump.fun/DexScreener matches in the web search performed on 2026-09-30. This is not legal trademark clearance and does not guarantee future availability.
+Static site — Vercel redeploys automatically when files change on GitHub.

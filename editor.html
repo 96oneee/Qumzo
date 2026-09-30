@@ -1,41 +1,44 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Project Editor</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>QUMZO Editor</title>
 <style>
-body{margin:0;background:#111;color:#eee;font:14px Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:30px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.top h1{margin:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:25px}.box{background:#1b1b1b;border:1px solid #333;border-radius:14px;padding:18px}.full{grid-column:1/-1}label{display:block;color:#aaa;font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px}input,textarea{width:100%;box-sizing:border-box;background:#101010;color:#fff;border:1px solid #444;border-radius:8px;padding:11px;margin-bottom:13px}textarea{min-height:90px;resize:vertical}button{background:#fff;color:#111;border:0;border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer;margin-right:8px}.hint{color:#888;line-height:1.6}.status{color:#9fdaaa}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+body{margin:0;background:#0b0914;color:#eee;font:14px system-ui,Arial,sans-serif}.wrap{max-width:1000px;margin:auto;padding:30px 16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}h1{margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:25px}.box{background:#15112a;border:1px solid #2e2650;border-radius:14px;padding:18px}.full{grid-column:1/-1}
+label{display:block;color:#a79fc4;font-size:11px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
+input,textarea{width:100%;box-sizing:border-box;background:#0b0914;color:#fff;border:1px solid #3a3160;border-radius:8px;padding:10px;margin-bottom:12px;font:inherit}
+textarea{min-height:80px;resize:vertical}button{background:linear-gradient(90deg,#9b6bff,#5f8dff);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer;margin-left:6px}
+.hint{color:#8c83ad;line-height:1.6}.status{color:#9fdaaa;margin-top:10px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
 </style></head>
 <body><div class="wrap">
-<div class="top"><div><h1>Project Editor</h1><div class="hint">Edit the project without touching the HTML. Export a new <b>config.js</b> and replace the old one.</div></div><div><button onclick="loadConfig()">Reset</button><button onclick="downloadConfig()">Export config.js</button></div></div>
+<div class="top"><div><h1>QUMZO Editor</h1><div class="hint">Edit the main fields, click <b>Export config.js</b>, then upload that file to GitHub (replace the old one).<br>Roadmap, FAQ and other lists are kept as they are — edit them in config.js directly.</div></div>
+<div><button onclick="loadConfig()">Reset</button><button onclick="downloadConfig()">Export config.js</button></div></div>
 <div id="status" class="status"></div>
 <div class="grid">
-<div class="box"><label>Project name</label><input id="name"><label>Logo mark</label><input id="mark"><label>Badge</label><input id="badge"><label>Contract</label><input id="contract"></div>
-<div class="box"><label>Buy link</label><input id="buy"><label>X link</label><input id="x"><label>Telegram link</label><input id="telegram"></div>
-<div class="box full"><label>Hero title (HTML allowed for line breaks)</label><textarea id="heroTitle"></textarea><label>Hero text</label><textarea id="heroText"></textarea></div>
+<div class="box"><label>Project name</label><input id="name"><label>Ticker</label><input id="ticker"><label>Badge</label><input id="badge"><label>Contract address</label><input id="contract"></div>
+<div class="box"><label>Buy link</label><input id="buy"><label>X link</label><input id="x"><label>Telegram link</label><input id="telegram"><label>Chart link (DexScreener)</label><input id="chart"></div>
+<div class="box full"><label>Hero title (HTML allowed)</label><textarea id="heroTitle"></textarea><label>Hero text</label><textarea id="heroText"></textarea></div>
 <div class="box"><label>About title</label><textarea id="aboutTitle"></textarea><label>About text</label><textarea id="aboutText"></textarea></div>
 <div class="box"><label>Community title</label><textarea id="communityTitle"></textarea><label>Community text</label><textarea id="communityText"></textarea></div>
-<div class="box full"><h3>Roadmap</h3><div id="roadmap"></div></div>
 <div class="box full"><h3>Tokenomics</h3><div id="tokenomics"></div></div>
 </div></div>
 <script src="config.js"></script><script>
 const $=id=>document.getElementById(id);
-function input(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+const F=["name","ticker","badge","contract","heroTitle","heroText","aboutTitle","aboutText","communityTitle","communityText"];
+const L=["buy","x","telegram","chart"];
+const q=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
 function loadConfig(){
- $("name").value=PROJECT.name;$("mark").value=PROJECT.mark;$("badge").value=PROJECT.badge;$("contract").value=PROJECT.contract;
- $("buy").value=PROJECT.links.buy;$("x").value=PROJECT.links.x;$("telegram").value=PROJECT.links.telegram;
- $("heroTitle").value=PROJECT.heroTitle;$("heroText").value=PROJECT.heroText;$("aboutTitle").value=PROJECT.aboutTitle;$("aboutText").value=PROJECT.aboutText;
- $("communityTitle").value=PROJECT.communityTitle;$("communityText").value=PROJECT.communityText;
- $("roadmap").innerHTML=PROJECT.roadmap.map((r,i)=>`<div class="row"><input id="rp${i}" value="${input(r.phase)}"><input id="rt${i}" value="${input(r.title)}"></div><textarea id="rx${i}">${input(r.text)}</textarea>`).join("");
- $("tokenomics").innerHTML=PROJECT.tokenomics.map((r,i)=>`<div class="row"><input id="tv${i}" value="${input(r.value)}"><input id="tl${i}" value="${input(r.label)}"></div>`).join("");
+ F.forEach(k=>$(k).value=PROJECT[k]??"");L.forEach(k=>$(k).value=PROJECT.links[k]??"");
+ $("tokenomics").innerHTML=PROJECT.tokenomics.map((r,i)=>`<div class="row"><input id="tv${i}" value="${q(r.value)}"><input id="tl${i}" value="${q(r.label)}"></div>`).join("");
  $("status").textContent="Loaded current config.";
 }
-function build(){
- const roadmap=PROJECT.roadmap.map((r,i)=>({phase:$("rp"+i).value,title:$("rt"+i).value,text:$("rx"+i).value}));
- const tokenomics=PROJECT.tokenomics.map((r,i)=>({value:$("tv"+i).value,label:$("tl"+i).value}));
- return {name:$("name").value,mark:$("mark").value,badge:$("badge").value,heroTitle:$("heroTitle").value,heroText:$("heroText").value,aboutTitle:$("aboutTitle").value,aboutText:$("aboutText").value,contract:$("contract").value,links:{buy:$("buy").value,x:$("x").value,telegram:$("telegram").value},roadmap,tokenomics,communityTitle:$("communityTitle").value,communityText:$("communityText").value,footerName:$("name").value};
-}
 function downloadConfig(){
- const p=build();const text="const PROJECT = "+JSON.stringify(p,null,2)+";\n";
+ const p=JSON.parse(JSON.stringify(PROJECT));
+ F.forEach(k=>p[k]=$(k).value);L.forEach(k=>p.links[k]=$(k).value);
+ p.tokenomics=PROJECT.tokenomics.map((r,i)=>({value:$("tv"+i).value,label:$("tl"+i).value}));
+ const text="/* QUMZO PROJECT CONFIG — exported from editor.html */\nconst PROJECT = "+JSON.stringify(p,null,2)+";\n";
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/javascript"}));a.download="config.js";a.click();URL.revokeObjectURL(a.href);
- $("status").textContent="Exported config.js. Replace the website's config.js with this file.";
+ $("status").textContent="Exported config.js. Upload it to GitHub to replace the old one.";
 }
 loadConfig();
 </script></body></html>
