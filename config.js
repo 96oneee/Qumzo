@@ -20,7 +20,7 @@ const PROJECT = {
   links: {
     buy: "https://pump.fun/",
     x: "https://x.com/QUMZOCOIN",
-    telegram: "https://t.me/+IoHMI-nxkt83YWQ0",
+    telegram: "https://t.me/QUMZO_COIN",
     chart: "" // e.g. your DexScreener link once it exists (leave empty to hide)
   },
 
