@@ -15,10 +15,10 @@ const PROJECT = {
   heroText: "QUMZO fell out of the sky somewhere between the stars and the internet. Galaxy eyes, a cracked shell older than time, and an antenna that only picks up memes.",
 
   // Paste the real contract address here after launch
-  contract: "TBA — LAUNCH PENDING",
+  contract: "5W1T3BYsUqpS5ZLoDK7beLRmu6ZtjN8wffUSs3uzpump",
 
   links: {
-    buy: "https://pump.fun/",
+    buy: "https://pump.fun/coin/5W1T3BYsUqpS5ZLoDK7beLRmu6ZtjN8wffUSs3uzpump",
     x: "https://x.com/QUMZOCOIN",
     telegram: "https://t.me/QUMZO_COIN",
     chart: "" // e.g. your DexScreener link once it exists (leave empty to hide)

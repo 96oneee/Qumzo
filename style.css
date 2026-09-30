@@ -48,6 +48,7 @@ a{color:inherit}
 .actions.center{justify-content:center}
 .contract{display:flex;align-items:center;gap:12px;margin-top:26px;width:max-content;max-width:100%;padding:10px 12px 10px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03)}
 .contract span{font-size:10px;font-weight:800;letter-spacing:.14em;color:#b9a2ff}
+.hero-copy{min-width:0}
 .contract code{font-size:13px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .copy{border:1px solid var(--line);background:rgba(155,107,255,.15);color:#fff;border-radius:9px;padding:7px 11px;font:800 11px "Outfit",sans-serif;letter-spacing:.08em;cursor:pointer;flex:none}
 .copy:hover{background:rgba(155,107,255,.35)}
