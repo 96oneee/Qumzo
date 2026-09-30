@@ -156,11 +156,10 @@ kbd{font:600 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:6
   function saveName(v) { try { localStorage.setItem(NAME_KEY, v); } catch (e) {} }
 
   // ---------- scoreboard ----------
-  // Keeps each username's best score. Today it is stored on this device only.
-  // To go global later, swap the bodies of submit() and top() for calls to an
-  // online API (e.g. a Vercel function + database) — the rest of the game
-  // already talks to it through these two async functions.
-  const Scoreboard = (() => {
+  // Global leaderboard via /api/scores (see api/scores.js). If the API is
+  // unreachable or not configured yet, it falls back to this device's board.
+  // Local board: each username's best score, stored on this device.
+  const LocalBoard = (() => {
     const KEY = "qumzo-game-scores", MAX = 100;
     const read = () => { try { const a = JSON.parse(localStorage.getItem(KEY) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
     const write = a => { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} };
@@ -181,6 +180,44 @@ kbd{font:600 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:6
       },
       async top(n) { const all = read().length ? read() : mem; return sort(all).slice(0, n); },
       async bestFor(name) { const all = read().length ? read() : mem; const e = all.find(x => x.id === name.toLowerCase()); return e ? e.score : 0; }
+    };
+  })();
+
+  const Scoreboard = (() => {
+    const API = "/api/scores";
+    let runToken = null;
+    let mode = "local"; // becomes "global" once the API answers
+    async function call(method, body, query) {
+      const r = await fetch(API + (query || ""), {
+        method, cache: "no-store",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || "http_" + r.status);
+      mode = "global";
+      return j;
+    }
+    return {
+      get mode() { return mode; },
+      // call when a run begins; the server needs this token to accept the score
+      startRun() { runToken = null; call("POST", { action: "start" }).then(j => { runToken = j.token; }).catch(() => { mode = "local"; }); },
+      async submit(name, score) {
+        const local = await LocalBoard.submit(name, score);
+        const token = runToken; runToken = null;
+        if (!token) return local;
+        try { const j = await call("POST", { action: "submit", token, name, score }); return { improved: j.improved, best: j.best, rank: j.rank }; }
+        catch (e) { return local; }
+      },
+      async top(n) {
+        try { const j = await call("GET", null, "?limit=" + n); return j.top; }
+        catch (e) { mode = "local"; return LocalBoard.top(n); }
+      },
+      async bestFor(name) {
+        const local = await LocalBoard.bestFor(name);
+        try { const j = await call("GET", null, "?limit=1&name=" + encodeURIComponent(name)); return Math.max(local, j.me ? j.me.score : 0); }
+        catch (e) { return local; }
+      }
     };
   })();
 
@@ -480,7 +517,7 @@ kbd{font:600 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:6
 
   // ---------- flow ----------
   function show(id) { ["startScreen", "pauseScreen", "overScreen", "boardScreen"].forEach(s => { $(s).hidden = s !== id; }); }
-  function start() { if (!playerName) { state = "start"; show("startScreen"); nameInput.focus(); return; } ensureAudio(); reset(); state = "play"; show(null); }
+  function start() { if (!playerName) { state = "start"; show("startScreen"); nameInput.focus(); return; } ensureAudio(); reset(); Scoreboard.startRun(); state = "play"; show(null); }
   function pause() { if (state !== "play") return; state = "pause"; show("pauseScreen"); }
   function resume() { if (state !== "pause") return; state = "play"; show(null); last = performance.now(); }
   function gameOver() {
@@ -533,6 +570,7 @@ kbd{font:600 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:6
     const list = $("boardList");
     list.textContent = "";
     const rows = await Scoreboard.top(10).catch(() => []);
+    $("boardNote").textContent = Scoreboard.mode === "global" ? "Best score per username, worldwide." : "Best score per username, saved on this device.";
     if (!rows.length) { const li = document.createElement("li"); li.className = "empty"; li.textContent = "No scores yet — be the first!"; list.appendChild(li); }
     const me = (playerName || nameInput.value.trim()).toLowerCase();
     rows.forEach((r, i) => {
