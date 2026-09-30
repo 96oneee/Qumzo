@@ -39,8 +39,8 @@
   // stickers
   const moods = ["default", "happy", "wink", "love", "cool", "shocked", "sleepy", "confused"];
   $("#stickerGrid").innerHTML = moods.map(m =>
-    `<a class="sticker reveal" href="brand/stickers/qumzo-${m}.png" download="qumzo-${m}.png" title="Download ${m}">
-      <img src="assets/qumzo-${m}.svg" alt="QUMZO ${m}" loading="lazy"><span>${m.toUpperCase()}</span></a>`).join("");
+    `<a class="sticker reveal" href="qumzo-${m}.png" download="qumzo-${m}.png" title="Download ${m}">
+      <img src="qumzo-${m}.svg" alt="QUMZO ${m}" loading="lazy"><span>${m.toUpperCase()}</span></a>`).join("");
 
   // faq
   $("#faqList").innerHTML = P.faq.map((f, i) =>
@@ -68,11 +68,11 @@
 
   // boop the mascot -> cycles moods
   const img = $("#mascotImg"), btn = $("#mascot");
-  moods.forEach(m => { const i = new Image(); i.src = `assets/qumzo-${m}.svg`; }); // preload
+  moods.forEach(m => { const i = new Image(); i.src = `qumzo-${m}.svg`; }); // preload
   let mi = 0;
   btn.addEventListener("click", () => {
     mi = (mi + 1) % moods.length;
-    img.src = `assets/qumzo-${moods[mi]}.svg`;
+    img.src = `qumzo-${moods[mi]}.svg`;
     btn.classList.add("boop"); setTimeout(() => btn.classList.remove("boop"), 150);
   });
 
