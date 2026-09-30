@@ -7,6 +7,7 @@ Static website for the QUMZO Solana community meme project.
 - `style.css` — the design (dark cosmic theme)
 - `config.js` — **all text, links, roadmap, FAQ and tokenomics. Edit this to change the site.**
 - `script.js` — puts config.js into the page (no need to edit)
+- `game.html` — QUMZO mini-game (dodge junk, collect stars; linked from the game card)
 - `editor.html` — visual editor for the main fields → exports a new config.js
 - `assets/` — QUMZO character (8 moods, SVG), wordmark logo, favicon
 - `brand/` — X profile picture, X banners, transparent sticker PNGs

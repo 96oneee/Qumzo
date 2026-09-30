@@ -55,7 +55,7 @@ const PROJECT = {
       ["DexScreener profile updated", false]
     ]},
     { phase: "PHASE 03", title: "QUMZO world", status: "next", items: [
-      ["QUMZO mini-game (play in browser)", false],
+      ["QUMZO mini-game (play in browser)", true],
       ["Game leaderboard & community challenges", false],
       ["Telegram sticker set & emoji pack", false],
       ["CoinGecko / CoinMarketCap applications", false]
@@ -76,7 +76,7 @@ const PROJECT = {
   ],
 
   gameTitle: "The QUMZO game",
-  gameText: "Help QUMZO dodge space junk and collect stars. A small browser game is in the works — follow on X to play it first.",
+  gameText: "Help QUMZO dodge space junk and collect stars. Chain stars for combos, beat your best score, and share it on X.",
 
   communityTitle: "QUMZO is what we make of it.",
   communityText: "Memes, art, jokes and experiments. The website documents the project — the community creates the culture.",

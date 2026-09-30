@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>QUMZO Game — Dodge the junk</title>
+<meta name="description" content="Help QUMZO dodge space junk and collect stars. A tiny browser game from the QUMZO community.">
+<meta name="theme-color" content="#07060f">
+<meta property="og:title" content="The QUMZO game">
+<meta property="og:description" content="Help QUMZO dodge space junk and collect stars.">
+<meta property="og:image" content="https://qumzo.vercel.app/qumzo-x-banner.png">
+<meta property="og:url" content="https://qumzo.vercel.app/game.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@QUMZOCOIN">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07060f;--line:rgba(190,170,255,.14);--text:#efeaff;--muted:#a79fc4;--violet:#9b6bff;--blue:#5f8dff;--lilac:#e6dcff;--pink:#ff8fb3;--grad:linear-gradient(90deg,#9b6bff,#5f8dff)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Outfit","Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.hud{position:fixed;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;pointer-events:none;z-index:2}
+.hud a,.hud button{pointer-events:auto}
+.brand img{height:22px;display:block}
+.stats{display:flex;gap:18px;align-items:center;font-weight:800;letter-spacing:.06em}
+.stat{display:flex;flex-direction:column;align-items:center;line-height:1}
+.stat small{font-size:10px;color:var(--muted);letter-spacing:.18em;margin-bottom:4px}
+.stat b{font-size:22px;font-variant-numeric:tabular-nums}
+#lives{font-size:18px;color:var(--pink);letter-spacing:2px;min-width:54px;text-align:center}
+#combo{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top));transform:translateX(-50%);font-weight:800;letter-spacing:.14em;font-size:13px;padding:6px 12px;border-radius:999px;background:var(--grad);opacity:0;transition:opacity .2s;pointer-events:none;z-index:2}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:rgba(7,6,15,.5);color:#fff;font:800 14px Outfit,sans-serif;cursor:pointer;display:grid;place-items:center}
+.iconbtn:hover{border-color:var(--violet)}
+.overlay{position:fixed;inset:0;display:grid;place-items:center;padding:16px;background:rgba(7,6,15,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:3}
+.overlay[hidden]{display:none}
+.panel{width:min(420px,100%);text-align:center;padding:28px 24px;border-radius:26px;border:1px solid #9b6bff55;background:linear-gradient(160deg,#1a1236ee,#0d0a1fee)}
+.panel img{display:block;margin:0 auto 8px;width:120px;height:140px;object-fit:contain;filter:drop-shadow(0 0 24px #9b6bff88)}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.18em;padding:6px 10px;border-radius:999px;background:var(--grad)}
+h1{font-size:32px;margin:12px 0 6px}
+.panel p{color:var(--muted);margin:0 0 18px;line-height:1.55}
+.big{font-size:44px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums}
+.newbest{color:var(--pink);font-weight:800;letter-spacing:.14em;font-size:13px}
+.btns{display:flex;flex-direction:column;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 24px;border-radius:999px;text-decoration:none;font:800 13px Outfit,sans-serif;letter-spacing:.08em;cursor:pointer;border:0;color:#fff;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn-glow{background:var(--grad);box-shadow:0 8px 30px #7a5cff55}
+.btn-ghost{background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.keys{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.6}
+kbd{font:600 12px Outfit,sans-serif;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--lilac)}
+@media (max-width:480px){.stats{gap:12px}.stat b{font-size:19px}h1{font-size:28px}.brand img{height:18px}}
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="QUMZO game area"></canvas>
+
+<div class="hud">
+  <a class="brand" href="index.html" aria-label="Back to the QUMZO website"><img src="qumzo-wordmark.svg" alt="QUMZO"></a>
+  <div class="stats">
+    <div class="stat"><small>SCORE</small><b id="score">0</b></div>
+    <div class="stat"><small>BEST</small><b id="best">0</b></div>
+    <div class="stat"><small>LIVES</small><span id="lives">♥♥♥</span></div>
+  </div>
+  <button class="iconbtn" id="pauseBtn" type="button" aria-label="Pause">II</button>
+</div>
+<div id="combo"></div>
+
+<div class="overlay" id="startScreen">
+  <div class="panel">
+    <img src="qumzo-wink.svg" alt="">
+    <div class="tag">MINI-GAME</div>
+    <h1>Dodge the junk.</h1>
+    <p>Space is messy. Help QUMZO dodge the junk and grab every star. Chain stars for a combo bonus.</p>
+    <div class="btns">
+      <button class="btn btn-glow" id="playBtn" type="button">PLAY</button>
+      <a class="btn btn-ghost" href="index.html">BACK TO SITE</a>
+    </div>
+    <div class="keys" id="howto">Move: drag your finger anywhere on screen.</div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseScreen" hidden>
+  <div class="panel">
+    <img src="qumzo-sleepy.svg" alt="">
+    <h1>Paused</h1>
+    <p>QUMZO is taking a tiny nap.</p>
+    <div class="btns">
+      <button class="btn btn-glow" id="resumeBtn" type="button">RESUME</button>
+      <button class="btn btn-ghost" id="quitBtn" type="button">QUIT</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overScreen" hidden>
+  <div class="panel">
+    <img src="qumzo-confused.svg" alt="">
+    <div class="tag">GAME OVER</div>
+    <div class="big" id="finalScore">0</div>
+    <div class="newbest" id="newBest" hidden>NEW BEST!</div>
+    <p id="overText">Best: 0</p>
+    <div class="btns">
+      <button class="btn btn-glow" id="againBtn" type="button">PLAY AGAIN</button>
+      <a class="btn btn-ghost" id="shareBtn" href="#" target="_blank" rel="noopener">SHARE ON X</a>
+      <a class="btn btn-ghost" href="index.html">BACK TO SITE</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const cv = $("game"), ctx = cv.getContext("2d");
+  const MOODS = ["default", "happy", "wink", "love", "cool", "shocked", "sleepy", "confused"];
+  const BEST_KEY = "qumzo-game-best";
+
+  // ---------- storage (may be blocked) ----------
+  function loadBest() { try { return parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) { return 0; } }
+  function saveBest(v) { try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) {} }
+
+  // ---------- sizing ----------
+  let W = 0, H = 0, DPR = 1, unit = 0;
+  const sprites = {};         // mood -> pre-rendered canvas
+  const images = {};          // mood -> Image
+  const SPRITE_RATIO = 700 / 600;
+  let qW = 80, qH = 93;
+
+  function renderSprites() {
+    for (const m of MOODS) {
+      const img = images[m];
+      if (!img || !img.complete || !img.naturalWidth) continue;
+      const c = document.createElement("canvas");
+      c.width = Math.round(qW * DPR); c.height = Math.round(qH * DPR);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      sprites[m] = c;
+    }
+  }
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    unit = Math.min(W, H);
+    qW = Math.max(60, Math.min(110, unit * 0.15)); qH = qW * SPRITE_RATIO;
+    renderSprites();
+    if (player) { player.x = clamp(player.x, qW / 2, W - qW / 2); player.y = clamp(player.y, qH / 2 + 60, H - qH / 2); }
+    makeBgStars();
+  }
+  for (const m of MOODS) {
+    const img = new Image();
+    img.onload = renderSprites;
+    img.src = "qumzo-" + m + ".svg";
+    images[m] = img;
+  }
+
+  // ---------- helpers ----------
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = arr => arr[(Math.random() * arr.length) | 0];
+
+  // ---------- background ----------
+  let bg = [];
+  function makeBgStars() {
+    const n = Math.round((W * H) / 5000);
+    bg = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, z: rand(0.2, 1), t: Math.random() * 6 }));
+  }
+  function drawBg(dt, speed) {
+    const g = ctx.createRadialGradient(W * 0.7, -H * 0.1, 0, W * 0.7, -H * 0.1, Math.max(W, H));
+    g.addColorStop(0, "#2a1560"); g.addColorStop(0.55, "#07060f");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    for (const s of bg) {
+      s.y += speed * s.z * 0.25 * dt;
+      s.t += dt;
+      if (s.y > H) { s.y = -2; s.x = Math.random() * W; }
+      ctx.globalAlpha = (0.35 + 0.35 * Math.sin(s.t * 2)) * s.z + 0.15;
+      ctx.fillStyle = s.z > 0.8 ? "#e6dcff" : "#9fb4ff";
+      const r = s.z * 1.6;
+      ctx.fillRect(s.x, s.y, r, r * (1 + speed * 0.002 * s.z));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------- game state ----------
+  let state = "start"; // start | play | pause | over
+  let player = null, junk = [], stars = [], parts = [], floats = [];
+  let score = 0, best = loadBest(), lives = 3, time = 0, combo = 0, comboTimer = 0;
+  let spawnJ = 0, spawnS = 0, invuln = 0, shake = 0;
+  let mood = "default", moodTimer = 0;
+  const keys = {};
+
+  function setMood(m, t) { mood = m; moodTimer = t || 0; }
+  function reset() {
+    player = { x: W / 2, y: H * 0.78, tx: W / 2, ty: H * 0.78, vx: 0, tilt: 0 };
+    junk = []; stars = []; parts = []; floats = [];
+    score = 0; lives = 3; time = 0; combo = 0; comboTimer = 0;
+    spawnJ = 0.6; spawnS = 1.2; invuln = 1.2; shake = 0;
+    setMood("wink", 1);
+    updateHud();
+  }
+  function difficulty() { return Math.min(1, time / 90); } // 0 → 1 over 90 s
+  function fallSpeed() { return unit * (0.38 + 0.75 * difficulty()); }
+
+  // ---------- spawning ----------
+  const JUNK_TYPES = ["rock", "rock", "rock", "panel", "bolt", "can"];
+  function spawnJunk() {
+    const type = pick(JUNK_TYPES);
+    const size = unit * (type === "rock" ? rand(0.045, 0.085) : rand(0.04, 0.06));
+    const j = { type, x: rand(size, W - size), y: -size * 2, r: size, vy: fallSpeed() * rand(0.8, 1.25), vx: rand(-0.08, 0.08) * unit, rot: Math.random() * 6.28, vr: rand(-2.5, 2.5), near: false };
+    if (type === "rock") {
+      j.pts = Array.from({ length: 9 }, (_, i) => { const a = i / 9 * Math.PI * 2; const d = rand(0.75, 1.1); return [Math.cos(a) * d, Math.sin(a) * d]; });
+      j.craters = Array.from({ length: 3 }, () => [rand(-0.45, 0.45), rand(-0.45, 0.45), rand(0.12, 0.22)]);
+    }
+    junk.push(j);
+  }
+  function spawnStar() {
+    const big = Math.random() < 0.1;
+    const r = unit * (big ? 0.04 : 0.028);
+    stars.push({ x: rand(r * 2, W - r * 2), y: -r * 2, r, big, vy: fallSpeed() * rand(0.6, 0.85), t: Math.random() * 6, vx: rand(-0.04, 0.04) * unit });
+  }
+
+  // ---------- particles ----------
+  function burst(x, y, colors, n, spd) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = rand(0.3, 1) * spd;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.4, 0.9), max: 0.9, c: pick(colors), r: rand(1.5, 3.5) });
+    }
+  }
+  function floatText(x, y, text, color) { floats.push({ x, y, text, color, life: 0.9 }); }
+
+  // ---------- update ----------
+  function update(dt) {
+    time += dt;
+    const d = difficulty();
+
+    // input → target
+    const kx = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+    const ky = (keys.ArrowDown || keys.KeyS ? 1 : 0) - (keys.ArrowUp || keys.KeyW ? 1 : 0);
+    if (kx || ky) {
+      const sp = unit * 1.15;
+      const len = Math.hypot(kx, ky) || 1;
+      player.tx += kx / len * sp * dt; player.ty += ky / len * sp * dt;
+    }
+    const minY = qH / 2 + 64, maxY = H - qH / 2 - 8;
+    player.tx = clamp(player.tx, qW / 2, W - qW / 2);
+    player.ty = clamp(player.ty, minY, maxY);
+    const k = 1 - Math.pow(0.0005, dt); // smooth follow
+    const px = player.x;
+    player.x += (player.tx - player.x) * k;
+    player.y += (player.ty - player.y) * k;
+    player.vx = (player.x - px) / Math.max(dt, 1e-3);
+    player.tilt += (clamp(player.vx / (unit * 3), -0.35, 0.35) - player.tilt) * Math.min(1, dt * 10);
+
+    // spawn
+    spawnJ -= dt; spawnS -= dt;
+    if (spawnJ <= 0) { spawnJunk(); if (Math.random() < d * 0.35) spawnJunk(); spawnJ = rand(0.55, 0.95) * (1 - 0.6 * d); }
+    if (spawnS <= 0) { spawnStar(); spawnS = rand(0.7, 1.3); }
+
+    // player hitbox: circle around the body
+    const hx = player.x, hy = player.y + qH * 0.08, hr = qW * 0.3;
+
+    for (let i = junk.length - 1; i >= 0; i--) {
+      const j = junk[i];
+      j.y += j.vy * dt; j.x += j.vx * dt; j.rot += j.vr * dt;
+      if (j.x < j.r || j.x > W - j.r) j.vx *= -1;
+      const dist = Math.hypot(j.x - hx, j.y - hy);
+      if (invuln <= 0 && dist < hr + j.r * 0.8) { hit(j); junk.splice(i, 1); continue; }
+      if (!j.near && invuln <= 0 && dist < hr + j.r * 1.9 && j.y > hy) { j.near = true; if (mood === "default") setMood("shocked", 0.45); }
+      if (j.y > H + j.r * 2) junk.splice(i, 1);
+    }
+    for (let i = stars.length - 1; i >= 0; i--) {
+      const s = stars[i];
+      s.y += s.vy * dt; s.x += s.vx * dt; s.t += dt;
+      if (Math.hypot(s.x - hx, s.y - hy) < hr + s.r * 1.3) { collect(s); stars.splice(i, 1); continue; }
+      if (s.y > H + s.r * 2) { stars.splice(i, 1); }
+    }
+
+    // passive score: 1 per second alive
+    score += dt; // fractional, displayed floored
+
+    if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) combo = 0; }
+    if (invuln > 0) invuln -= dt;
+    if (moodTimer > 0) { moodTimer -= dt; if (moodTimer <= 0) mood = baseMood(); }
+    else mood = baseMood();
+    if (shake > 0) shake = Math.max(0, shake - dt * 30);
+
+    updateParts(dt);
+    updateHud();
+  }
+  function baseMood() { if (combo >= 8) return "love"; if (difficulty() > 0.6) return "cool"; return "default"; }
+  function mult() { return 1 + Math.min(4, Math.floor(combo / 4)); }
+
+  function collect(s) {
+    combo++; comboTimer = 2.2;
+    const pts = (s.big ? 50 : 10) * mult();
+    score += pts;
+    burst(s.x, s.y, s.big ? ["#ff8fb3", "#ffffff", "#e6dcff"] : ["#e6dcff", "#9fb4ff", "#ffffff"], s.big ? 26 : 14, unit * 0.5);
+    floatText(s.x, s.y, "+" + pts, s.big ? "#ff8fb3" : "#e6dcff");
+    setMood(s.big ? "love" : "happy", 0.6);
+    beep(s.big ? 880 : 660, 0.08, "triangle", 0.05);
+  }
+  function hit(j) {
+    lives--; combo = 0; comboTimer = 0;
+    invuln = 1.6; shake = 12;
+    burst(j.x, j.y, ["#9b6bff", "#5f8dff", "#a79fc4", "#ffffff"], 22, unit * 0.6);
+    setMood("shocked", 1.1);
+    beep(140, 0.22, "sawtooth", 0.06);
+    try { if (navigator.vibrate) navigator.vibrate(80); } catch (e) {}
+    if (lives <= 0) gameOver();
+  }
+
+  function updateParts(dt) {
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.life -= dt;
+      if (p.life <= 0) parts.splice(i, 1);
+    }
+    for (let i = floats.length - 1; i >= 0; i--) {
+      const f = floats[i]; f.y -= unit * 0.12 * dt; f.life -= dt;
+      if (f.life <= 0) floats.splice(i, 1);
+    }
+  }
+
+  // ---------- drawing ----------
+  function drawJunk(j) {
+    ctx.save(); ctx.translate(j.x, j.y); ctx.rotate(j.rot);
+    const r = j.r;
+    if (j.type === "rock") {
+      ctx.beginPath();
+      j.pts.forEach(([x, y], i) => i ? ctx.lineTo(x * r, y * r) : ctx.moveTo(x * r, y * r));
+      ctx.closePath();
+      const g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r * 1.1);
+      g.addColorStop(0, "#6e6390"); g.addColorStop(1, "#2b2442");
+      ctx.fillStyle = g; ctx.fill();
+      ctx.strokeStyle = "#9b6bff66"; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = "#1e1932";
+      for (const [cx, cy, cr] of j.craters) { ctx.beginPath(); ctx.arc(cx * r, cy * r, cr * r, 0, 6.29); ctx.fill(); }
+    } else if (j.type === "panel") {
+      ctx.fillStyle = "#1c2a5c"; ctx.strokeStyle = "#5f8dff"; ctx.lineWidth = 1.5;
+      ctx.fillRect(-r, -r * 0.55, r * 2, r * 1.1); ctx.strokeRect(-r, -r * 0.55, r * 2, r * 1.1);
+      ctx.beginPath();
+      for (let i = 1; i < 4; i++) { ctx.moveTo(-r + i * r / 2, -r * 0.55); ctx.lineTo(-r + i * r / 2, r * 0.55); }
+      ctx.moveTo(-r, 0); ctx.lineTo(r, 0);
+      ctx.strokeStyle = "#5f8dff88"; ctx.stroke();
+      ctx.fillStyle = "#a79fc4"; ctx.fillRect(-r * 0.12, r * 0.55, r * 0.24, r * 0.4);
+    } else if (j.type === "bolt") {
+      ctx.fillStyle = "#8c86a6";
+      ctx.fillRect(-r * 0.22, -r * 0.2, r * 0.44, r * 1.1);
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; ctx.lineTo(Math.cos(a) * r * 0.55, -r * 0.35 + Math.sin(a) * r * 0.55); }
+      ctx.closePath(); ctx.fillStyle = "#b9b3d1"; ctx.fill();
+      ctx.strokeStyle = "#5c5677"; ctx.lineWidth = 1.5;
+      for (let y = 0.1; y < 0.9; y += 0.2) { ctx.beginPath(); ctx.moveTo(-r * 0.22, r * y); ctx.lineTo(r * 0.22, r * (y + 0.1)); ctx.stroke(); }
+    } else { // can
+      ctx.fillStyle = "#ff8fb3"; ctx.fillRect(-r * 0.45, -r * 0.8, r * 0.9, r * 1.6);
+      ctx.fillStyle = "#c8c2de"; ctx.fillRect(-r * 0.45, -r * 0.8, r * 0.9, r * 0.18); ctx.fillRect(-r * 0.45, r * 0.62, r * 0.9, r * 0.18);
+      ctx.fillStyle = "#07060f88"; ctx.fillRect(-r * 0.45, -r * 0.2, r * 0.9, r * 0.3);
+    }
+    ctx.restore();
+  }
+  function starPath(r, inner) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5; const d = i % 2 ? r * inner : r; ctx.lineTo(Math.cos(a) * d, Math.sin(a) * d); }
+    ctx.closePath();
+  }
+  function drawStar(s) {
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(Math.sin(s.t * 2) * 0.3);
+    const pulse = 1 + Math.sin(s.t * 6) * 0.08;
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, s.r * 2.4);
+    glow.addColorStop(0, s.big ? "#ff8fb366" : "#5f8dff55"); glow.addColorStop(1, "transparent");
+    ctx.fillStyle = glow; ctx.fillRect(-s.r * 2.4, -s.r * 2.4, s.r * 4.8, s.r * 4.8);
+    starPath(s.r * pulse, 0.45);
+    ctx.fillStyle = s.big ? "#ff8fb3" : "#e6dcff"; ctx.fill();
+    starPath(s.r * pulse * 0.5, 0.45); ctx.fillStyle = "#ffffff"; ctx.fill();
+    ctx.restore();
+  }
+  function drawPlayer() {
+    if (invuln > 0 && state === "play" && Math.floor(invuln * 12) % 2 === 0) return; // blink
+    const spr = sprites[mood] || sprites.default;
+    const bob = Math.sin(performance.now() / 260) * 3;
+    ctx.save(); ctx.translate(player.x, player.y + bob); ctx.rotate(player.tilt);
+    const g = ctx.createRadialGradient(0, qH * 0.1, 0, 0, qH * 0.1, qW * 0.9);
+    g.addColorStop(0, "#9b6bff44"); g.addColorStop(1, "transparent");
+    ctx.fillStyle = g; ctx.fillRect(-qW, -qH * 0.8, qW * 2, qH * 1.8);
+    if (spr) ctx.drawImage(spr, -qW / 2, -qH / 2, qW, qH);
+    else { ctx.fillStyle = "#e6dcff"; ctx.beginPath(); ctx.arc(0, 0, qW * 0.35, 0, 6.29); ctx.fill(); }
+    ctx.restore();
+  }
+  function draw() {
+    ctx.save();
+    if (shake > 0) ctx.translate(rand(-shake, shake), rand(-shake, shake));
+    stars.forEach(drawStar);
+    junk.forEach(drawJunk);
+    if (player) drawPlayer();
+    for (const p of parts) { ctx.globalAlpha = clamp(p.life / p.max, 0, 1); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.29); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "center"; ctx.font = "800 18px Outfit, sans-serif";
+    for (const f of floats) { ctx.globalAlpha = clamp(f.life / 0.9, 0, 1); ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y); }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // ---------- HUD ----------
+  const scoreEl = $("score"), bestEl = $("best"), livesEl = $("lives"), comboEl = $("combo");
+  let lastHud = "";
+  function updateHud() {
+    const s = Math.floor(score), b = Math.max(best, s);
+    const key = s + "|" + b + "|" + lives + "|" + combo;
+    if (key === lastHud) return; lastHud = key;
+    scoreEl.textContent = s; bestEl.textContent = b;
+    livesEl.textContent = "♥".repeat(Math.max(0, lives)) + "♡".repeat(Math.max(0, 3 - lives));
+    if (mult() > 1) { comboEl.textContent = "COMBO x" + mult(); comboEl.style.opacity = 1; } else comboEl.style.opacity = 0;
+  }
+  bestEl.textContent = best;
+
+  // ---------- flow ----------
+  function show(id) { ["startScreen", "pauseScreen", "overScreen"].forEach(s => { $(s).hidden = s !== id; }); }
+  function start() { ensureAudio(); reset(); state = "play"; show(null); }
+  function pause() { if (state !== "play") return; state = "pause"; show("pauseScreen"); }
+  function resume() { if (state !== "pause") return; state = "play"; show(null); last = performance.now(); }
+  function gameOver() {
+    state = "over";
+    const s = Math.floor(score);
+    const isBest = s > best;
+    if (isBest) { best = s; saveBest(best); }
+    $("finalScore").textContent = s;
+    $("newBest").hidden = !isBest;
+    $("overText").textContent = "Best: " + best;
+    const text = `I scored ${s} in the QUMZO game 👽✨ Can you beat me?`;
+    $("shareBtn").href = "https://x.com/intent/post?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent("https://qumzo.vercel.app/game.html") + "&via=QUMZOCOIN";
+    comboEl.style.opacity = 0;
+    setTimeout(() => { if (state === "over") show("overScreen"); }, 650);
+  }
+  $("playBtn").onclick = start;
+  $("againBtn").onclick = start;
+  $("resumeBtn").onclick = resume;
+  $("quitBtn").onclick = () => { state = "start"; show("startScreen"); };
+  $("pauseBtn").onclick = () => (state === "play" ? pause() : resume());
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+  window.addEventListener("blur", pause);
+
+  // ---------- input ----------
+  window.addEventListener("keydown", e => {
+    keys[e.code] = true;
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) e.preventDefault();
+    if (e.code === "Space" || e.code === "Enter") {
+      if (state === "start" || (state === "over" && !$("overScreen").hidden)) start();
+      else if (state === "pause") resume();
+    }
+    if (e.code === "KeyP" || e.code === "Escape") { state === "play" ? pause() : resume(); }
+  });
+  window.addEventListener("keyup", e => { keys[e.code] = false; });
+
+  // mouse: QUMZO follows the cursor. touch/pen: relative drag, so the finger never covers him.
+  let drag = null;
+  cv.addEventListener("pointerdown", e => {
+    if (state !== "play" || !player) return;
+    if (e.pointerType !== "mouse") { drag = { id: e.pointerId, x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); }
+  });
+  cv.addEventListener("pointermove", e => {
+    if (state !== "play" || !player) return;
+    if (e.pointerType === "mouse") { player.tx = e.clientX; player.ty = e.clientY; return; }
+    if (!drag || drag.id !== e.pointerId) return;
+    const sens = 1.5;
+    player.tx = clamp(player.tx + (e.clientX - drag.x) * sens, qW / 2, W - qW / 2);
+    player.ty = clamp(player.ty + (e.clientY - drag.y) * sens, qH / 2 + 64, H - qH / 2 - 8);
+    drag.x = e.clientX; drag.y = e.clientY;
+  });
+  const endDrag = e => { if (drag && drag.id === e.pointerId) drag = null; };
+  cv.addEventListener("pointerup", endDrag);
+  cv.addEventListener("pointercancel", endDrag);
+
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    $("howto").innerHTML = "Move with the <kbd>mouse</kbd>, <kbd>WASD</kbd> or <kbd>arrow keys</kbd>. <kbd>P</kbd> to pause. <kbd>Space</kbd> to start.";
+  }
+
+  // ---------- sound (tiny, generated) ----------
+  let actx = null;
+  function ensureAudio() {
+    try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); } catch (e) { actx = null; }
+  }
+  function beep(freq, dur, type, vol) {
+    if (!actx) return;
+    try {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.value = freq;
+      o.frequency.exponentialRampToValueAtTime(freq * (type === "sawtooth" ? 0.5 : 1.5), actx.currentTime + dur);
+      g.gain.value = vol; g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+      o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  // ---------- loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const speed = state === "play" ? fallSpeed() : unit * 0.3;
+    if (state === "play") update(dt);
+    else if (state === "over") updateParts(dt);
+    drawBg(state === "pause" ? 0 : dt, speed);
+    if (state !== "start") draw();
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
